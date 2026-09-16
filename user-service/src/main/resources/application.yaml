@@ -1,8 +1,17 @@
+### Spring Config ###
 spring:
   application:
     name: user-service
+  threads:
+    virtual:
+      enabled: true
 
+### JWT Config ###
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration-seconds: 900
   refresh-token-expiration-seconds: 604800 # 7 days
+
+### Server Config ###
+server:
+  port: 8081

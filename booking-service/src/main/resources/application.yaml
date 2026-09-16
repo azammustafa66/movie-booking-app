@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: booking-service
+  threads:
+    virtual:
+      enabled: true
