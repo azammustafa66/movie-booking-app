@@ -51,9 +51,10 @@ public class UserService {
      * @throws UserAlreadyExistsException if the email is already registered
      */
     public SignUpResponseDto createUser(SignUpRequestDto signUpRequest) {
-        log.info("Creating user {}", signUpRequest.getEmail());
+        log.info("Signup attempt for {}", signUpRequest.getEmail());
 
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+            log.warn("Signup rejected, email already registered: {}", signUpRequest.getEmail());
             throw new UserAlreadyExistsException("User with email already exists");
         }
         AppUser user = new AppUser();
@@ -63,7 +64,10 @@ public class UserService {
         user.setLastName(signUpRequest.getLastName());
         // Role defaults to CUSTOMER on the entity itself; no need to set it here.
 
-        return modelMapper.map(userRepository.save(user), SignUpResponseDto.class);
+        AppUser savedUser = userRepository.save(user);
+        log.info("User created: {}", savedUser.getEmail());
+
+        return modelMapper.map(savedUser, SignUpResponseDto.class);
     }
 
     /**
@@ -74,11 +78,16 @@ public class UserService {
      * @throws BadCredentialsException if the email is unknown or the password doesn't match
      */
     public LoginResponseDto loginUser(LoginRequestDto loginRequest, HttpServletRequest request) {
-        log.info("Login attempt for: {}", loginRequest.email());
+        log.info("Login attempt for {}", loginRequest.email());
 
-        AppUser user = userRepository.findByEmail(loginRequest.email()).orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
+        AppUser user = userRepository.findByEmail(loginRequest.email())
+                .orElseThrow(() -> {
+                    log.warn("Login failed, no account for {}", loginRequest.email());
+                    return new BadCredentialsException("Invalid email or password");
+                });
 
         if (!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
+            log.warn("Login failed, incorrect password for {}", user.getEmail());
             throw new BadCredentialsException("Invalid email or password");
         }
 
@@ -95,6 +104,8 @@ public class UserService {
         session.setIpAddress(request.getRemoteAddr());
         session.setUserAgent(request.getHeader("User-Agent"));
         userSessionRepository.save(session);
+
+        log.info("Login successful for {}", user.getEmail());
 
         return new LoginResponseDto(accessToken, refreshToken);
     }
@@ -114,17 +125,20 @@ public class UserService {
 
         UserSession oldSession = userSessionRepository
                 .findByRefreshTokenHash(tokenHash)
-                .orElseThrow(() ->
-                        new BadCredentialsException("Invalid refresh token")
-                );
+                .orElseThrow(() -> {
+                    log.warn("Refresh failed, unknown refresh token");
+                    return new BadCredentialsException("Invalid refresh token");
+                });
 
         LocalDateTime now = LocalDateTime.now();
 
         if (oldSession.isRevoked() || oldSession.getExpiresAt().isBefore(now)) {
+            log.warn("Refresh failed, revoked or expired session for {}", oldSession.getUser().getEmail());
             throw new BadCredentialsException("Invalid refresh token");
         }
 
         AppUser user = oldSession.getUser();
+        log.info("Refreshing token for {}", user.getEmail());
 
         String newAccessToken = jwtService.generateAccessToken(user);
         String newRefreshToken = refreshTokenService.generateRefreshToken();
@@ -166,10 +180,14 @@ public class UserService {
         String tokenHash = hashRefreshToken(request.refreshToken());
         UserSession session = userSessionRepository
                 .findByRefreshTokenHash(tokenHash)
-                .orElseThrow(() -> new BadCredentialsException("Invalid refresh token"));
+                .orElseThrow(() -> {
+                    log.warn("Logout failed, unknown refresh token");
+                    return new BadCredentialsException("Invalid refresh token");
+                });
 
         session.setRevoked(true);
         userSessionRepository.save(session);
+        log.info("Logged out {}", session.getUser().getEmail());
     }
 
     /**
@@ -184,10 +202,14 @@ public class UserService {
 
         UserSession currentSession = userSessionRepository
                 .findByRefreshTokenHash(tokenHash)
-                .orElseThrow(() -> new BadCredentialsException("Invalid refresh token"));
+                .orElseThrow(() -> {
+                    log.warn("Logout-all failed, unknown refresh token");
+                    return new BadCredentialsException("Invalid refresh token");
+                });
         AppUser user = currentSession.getUser();
 
         userSessionRepository.revokeAllByUser(user);
+        log.info("Logged out all devices for {}", user.getEmail());
     }
 
     /**
@@ -202,6 +224,7 @@ public class UserService {
             byte[] hashedRefreshToken = md.digest(refreshToken.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(hashedRefreshToken);
         } catch (NoSuchAlgorithmException e) {
+            log.error("SHA-256 algorithm unavailable while hashing refresh token", e);
             throw new IllegalStateException("SHA-256 algorithm not available", e);
         }
     }
