@@ -9,9 +9,10 @@ import demo.catalogservice.repos.MovieRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -26,10 +27,10 @@ public class MovieService {
     private final ModelMapper modelMapper;
 
     /** All movies in the catalog, regardless of status. */
-    public List<MovieResponseDto> getMovies() {
-        log.info("Fetching all movies");
-        List<MovieResponseDto> movies = movieRepository.findAll().stream().map(this::toDto).toList();
-        log.info("Found {} movies", movies.size());
+    public Page<MovieResponseDto> getMovies(Pageable pageable) {
+        log.info("Fetching movies (page {}, size {})", pageable.getPageNumber(), pageable.getPageSize());
+        Page<MovieResponseDto> movies = movieRepository.findAll(pageable).map(this::toDto);
+        log.info("Found {} movies (page {} of {})", movies.getNumberOfElements(), movies.getNumber() + 1, movies.getTotalPages());
         return movies;
     }
 
@@ -48,30 +49,26 @@ public class MovieService {
     }
 
     /** Search-bar lookup as the user types a movie title; matches anywhere in the title, case-insensitively. */
-    public List<MovieResponseDto> getMovieByTitle(String title) {
+    public Page<MovieResponseDto> getMovieByTitle(String title, Pageable pageable) {
         log.info("Searching for movies with title containing '{}'", title);
-        List<MovieResponseDto> movies = movieRepository.findByTitleContainingIgnoreCase(title).stream()
-                .map(this::toDto)
-                .toList();
-        log.info("Found {} movies matching title '{}'", movies.size(), title);
+        Page<MovieResponseDto> movies = movieRepository.findByTitleContainingIgnoreCase(title, pageable).map(this::toDto);
+        log.info("Found {} movies matching title '{}'", movies.getTotalElements(), title);
         return movies;
     }
 
     /** Movies shown on the "now showing" / "upcoming" home screen listings. */
-    public List<MovieResponseDto> getMoviesByStatus(MovieStatus status) {
+    public Page<MovieResponseDto> getMoviesByStatus(MovieStatus status, Pageable pageable) {
         log.info("Fetching movies with status {}", status);
-        List<MovieResponseDto> movies = movieRepository.findByStatus(status).stream().map(this::toDto).toList();
-        log.info("Found {} movies with status {}", movies.size(), status);
+        Page<MovieResponseDto> movies = movieRepository.findByStatus(status, pageable).map(this::toDto);
+        log.info("Found {} movies with status {}", movies.getTotalElements(), status);
         return movies;
     }
 
     /** Browsing movies filtered by a genre name (e.g. "Action", "Comedy"), case-insensitively. */
-    public List<MovieResponseDto> getMoviesByGenre(String genre) {
+    public Page<MovieResponseDto> getMoviesByGenre(String genre, Pageable pageable) {
         log.info("Fetching movies with genre '{}'", genre);
-        List<MovieResponseDto> movies = movieRepository.findByGenres_NameIgnoreCase(genre).stream()
-                .map(this::toDto)
-                .toList();
-        log.info("Found {} movies with genre '{}'", movies.size(), genre);
+        Page<MovieResponseDto> movies = movieRepository.findByGenres_NameIgnoreCase(genre, pageable).map(this::toDto);
+        log.info("Found {} movies with genre '{}'", movies.getTotalElements(), genre);
         return movies;
     }
 

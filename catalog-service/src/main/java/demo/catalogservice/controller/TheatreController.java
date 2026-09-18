@@ -6,6 +6,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,9 +18,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
-/** Read-only browse/search endpoints over theatres. */
+/**
+ * Read-only browse/search endpoints over theatres.
+ * <p>
+ * Every paginated endpoint here accepts {@code ?sort=<property>,<asc|desc>}
+ * (repeatable for a multi-key sort). Valid properties are any {@code
+ * Theatre} field: {@code name}, {@code city}, {@code state}, {@code
+ * address}, {@code pincode}.
+ */
 @RestController
 @RequestMapping("/api/v1/theatres")
 @RequiredArgsConstructor
@@ -28,9 +37,10 @@ public class TheatreController {
 
     /** All theatres in the catalog. */
     @GetMapping
-    public ResponseEntity<List<TheatreResponseDto>> getAllTheatres() {
-        List<TheatreResponseDto> theatres = theatreService.getTheatres();
-        return ResponseEntity.ok(theatres);
+    public ResponseEntity<PagedModel<TheatreResponseDto>> getAllTheatres(
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<TheatreResponseDto> theatres = theatreService.getTheatres(pageable);
+        return ResponseEntity.ok(new PagedModel<>(theatres));
     }
 
     /** Fetches a single theatre by id, or {@code 404} if it doesn't exist. */
@@ -43,16 +53,19 @@ public class TheatreController {
 
     /** "Pick your city" step: theatres available in the city the user selected. */
     @GetMapping("/city/{city}")
-    public ResponseEntity<List<TheatreResponseDto>> getTheatresByCity(@PathVariable String city) {
-        List<TheatreResponseDto> theatres = theatreService.getTheatresByCity(city);
-        return ResponseEntity.ok(theatres);
+    public ResponseEntity<PagedModel<TheatreResponseDto>> getTheatresByCity(
+            @PathVariable String city,
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<TheatreResponseDto> theatres = theatreService.getTheatresByCity(city, pageable);
+        return ResponseEntity.ok(new PagedModel<>(theatres));
     }
 
     /** Search-bar lookup as the user types a theatre name. */
     @GetMapping("/search")
-    public ResponseEntity<List<TheatreResponseDto>> getTheatresByName(
-            @NotBlank(message = "Theatre name cannot be blank") @RequestParam("name") String name) {
-        List<TheatreResponseDto> theatres = theatreService.getTheatresByName(name);
-        return ResponseEntity.ok(theatres);
+    public ResponseEntity<PagedModel<TheatreResponseDto>> getTheatresByName(
+            @NotBlank(message = "Theatre name cannot be blank") @RequestParam("name") String name,
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<TheatreResponseDto> theatres = theatreService.getTheatresByName(name, pageable);
+        return ResponseEntity.ok(new PagedModel<>(theatres));
     }
 }

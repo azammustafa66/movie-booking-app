@@ -6,6 +6,10 @@ import demo.catalogservice.service.SeatService;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +19,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-/** Read-only endpoints over the seat map. */
+/**
+ * Read-only endpoints over the seat map.
+ * <p>
+ * {@link #getAllSeats} accepts {@code ?sort=<property>,<asc|desc>}
+ * (repeatable for a multi-key sort). Valid properties are any {@code Seat}
+ * field: {@code rowLabel}, {@code seatNumber}, {@code seatType}. The
+ * per-screen endpoints below are always returned in row-major reading order
+ * ({@code rowLabel}, then {@code seatNumber}) since that's what a seat grid
+ * needs, and aren't independently sortable.
+ */
 @RestController
 @RequestMapping("/api/v1/seats")
 @RequiredArgsConstructor
@@ -27,9 +40,10 @@ public class SeatController {
 
     /** All seats across every screen. */
     @GetMapping
-    public ResponseEntity<List<SeatResponseDto>> getAllSeats() {
-        List<SeatResponseDto> seats = seatService.getSeats();
-        return ResponseEntity.ok(seats);
+    public ResponseEntity<PagedModel<SeatResponseDto>> getAllSeats(
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<SeatResponseDto> seats = seatService.getSeats(pageable);
+        return ResponseEntity.ok(new PagedModel<>(seats));
     }
 
     /** Fetches a single seat by id, or {@code 404} if it doesn't exist. */

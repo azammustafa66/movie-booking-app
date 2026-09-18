@@ -7,6 +7,7 @@ import demo.catalogservice.repos.GenreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,10 +21,12 @@ public class GenreService {
     private final GenreRepository genreRepository;
     private final ModelMapper modelMapper;
 
-    /** All genres, e.g. to populate a "filter by genre" dropdown. */
+    /** All genres in alphabetical order, e.g. to populate a "filter by genre" dropdown. */
     public List<GenreResponseDto> getGenres() {
         log.info("Fetching all genres");
-        List<GenreResponseDto> genres = genreRepository.findAll().stream().map(this::toDto).toList();
+        List<GenreResponseDto> genres = genreRepository.findAll(Sort.by("name")).stream()
+                .map(this::toDto)
+                .toList();
         log.info("Found {} genres", genres.size());
         return genres;
     }

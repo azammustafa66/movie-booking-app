@@ -7,9 +7,9 @@ import demo.catalogservice.repos.TheatreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /** Read-only theatre lookups backing the "pick a theatre" booking flow. */
 @Service
@@ -21,10 +21,10 @@ public class TheatreService {
     private final ModelMapper modelMapper;
 
     /** All theatres in the catalog. */
-    public List<TheatreResponseDto> getTheatres() {
-        log.info("Fetching all theatres");
-        List<TheatreResponseDto> theatres = theatreRepository.findAll().stream().map(this::toDto).toList();
-        log.info("Found {} theatres", theatres.size());
+    public Page<TheatreResponseDto> getTheatres(Pageable pageable) {
+        log.info("Fetching theatres (page {}, size {})", pageable.getPageNumber(), pageable.getPageSize());
+        Page<TheatreResponseDto> theatres = theatreRepository.findAll(pageable).map(this::toDto);
+        log.info("Found {} theatres (page {} of {})", theatres.getNumberOfElements(), theatres.getNumber() + 1, theatres.getTotalPages());
         return theatres;
     }
 
@@ -43,22 +43,18 @@ public class TheatreService {
     }
 
     /** "Pick your city" step: theatres available in the city the user selected. */
-    public List<TheatreResponseDto> getTheatresByCity(String city) {
+    public Page<TheatreResponseDto> getTheatresByCity(String city, Pageable pageable) {
         log.info("Fetching theatres in city '{}'", city);
-        List<TheatreResponseDto> theatres = theatreRepository.findByCityIgnoreCase(city).stream()
-                .map(this::toDto)
-                .toList();
-        log.info("Found {} theatres in city '{}'", theatres.size(), city);
+        Page<TheatreResponseDto> theatres = theatreRepository.findByCityIgnoreCase(city, pageable).map(this::toDto);
+        log.info("Found {} theatres in city '{}'", theatres.getTotalElements(), city);
         return theatres;
     }
 
     /** Search-bar lookup as the user types a theatre name. */
-    public List<TheatreResponseDto> getTheatresByName(String name) {
+    public Page<TheatreResponseDto> getTheatresByName(String name, Pageable pageable) {
         log.info("Searching for theatres with name containing '{}'", name);
-        List<TheatreResponseDto> theatres = theatreRepository.findByNameContainingIgnoreCase(name).stream()
-                .map(this::toDto)
-                .toList();
-        log.info("Found {} theatres matching name '{}'", theatres.size(), name);
+        Page<TheatreResponseDto> theatres = theatreRepository.findByNameContainingIgnoreCase(name, pageable).map(this::toDto);
+        log.info("Found {} theatres matching name '{}'", theatres.getTotalElements(), name);
         return theatres;
     }
 

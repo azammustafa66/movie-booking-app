@@ -1,5 +1,6 @@
 package demo.catalogservice.exceptions;
 
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -43,5 +44,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .badRequest()
                 .body(String.format("'%s' is not a valid %s for parameter '%s'", value, type, name));
+    }
+
+    /** A {@code ?sort=} request param naming a property that doesn't exist on the entity. */
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<String> handlePropertyReferenceException(PropertyReferenceException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 }

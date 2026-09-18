@@ -5,6 +5,10 @@ import demo.catalogservice.service.ScreenService;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-/** Read-only endpoints over theatre screens. */
+/**
+ * Read-only endpoints over theatre screens.
+ * <p>
+ * {@link #getAllScreens} accepts {@code ?sort=<property>,<asc|desc>}
+ * (repeatable for a multi-key sort). Valid properties are any {@code
+ * Screen} field ({@code name}, {@code capacity}, {@code screenType}) plus
+ * the flattened parent theatre ({@code theatre.name}, {@code theatre.city}).
+ */
 @RestController
 @RequestMapping("/api/v1/screens")
 @RequiredArgsConstructor
@@ -26,9 +37,10 @@ public class ScreenController {
 
     /** All screens across every theatre. */
     @GetMapping
-    public ResponseEntity<List<ScreenResponseDto>> getAllScreens() {
-        List<ScreenResponseDto> screens = screenService.getScreens();
-        return ResponseEntity.ok(screens);
+    public ResponseEntity<PagedModel<ScreenResponseDto>> getAllScreens(
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<ScreenResponseDto> screens = screenService.getScreens(pageable);
+        return ResponseEntity.ok(new PagedModel<>(screens));
     }
 
     /** Fetches a single screen by id, or {@code 404} if it doesn't exist. */
