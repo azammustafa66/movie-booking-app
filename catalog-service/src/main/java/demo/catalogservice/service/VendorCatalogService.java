@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Write-side of the catalog for vendors, scoped to what they own.
  * <p>
  * Every method here takes the caller's {@code vendorId} (resolved by
- * {@code HeaderAuthenticationFilter} from the gateway-forwarded
+ * {@code AuthInterceptor} from the gateway-forwarded
  * {@code X-User-Id} header) and uses it two ways:
  * <ul>
  *     <li>on create, to stamp ownership onto the new theatre (or, for

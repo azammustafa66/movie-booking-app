@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
  * Unlike {@link VendorCatalogService}, nothing here is ownership-scoped —
  * an admin can create, update, or delete any theatre, screen, seat, show,
  * movie, or genre. Authorization (is the caller actually an admin?) is
- * enforced upstream by {@code HeaderAuthenticationFilter} on every
+ * enforced upstream by {@code AuthInterceptor} on every
  * {@code /api/v1/admin/**} route, so this service trusts every call it
  * receives.
  */

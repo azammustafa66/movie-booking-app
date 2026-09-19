@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Write-side catalog management for platform admins.
  * <p>
  * Every route here requires {@code X-User-Role: ADMIN}, enforced by
- * {@code HeaderAuthenticationFilter} before any request reaches this
+ * {@code AuthInterceptor} before any request reaches this
  * controller (see {@code demo.catalogservice.config.SecurityConfig}) — an
  * admin can create, update, or delete any theatre, screen, seat, show,
  * movie, or genre, with no ownership restriction. Read access to the same
