@@ -11,4 +11,7 @@ public interface TheatreRepository extends JpaRepository<Theatre, Long> {
 
     /** Search-bar lookup as the user types a theatre name. */
     Page<Theatre> findByNameContainingIgnoreCase(String name, Pageable pageable);
+
+    /** A vendor's own theatres, for their "my theatres" management screen. */
+    Page<Theatre> findByVendorId(Long vendorId, Pageable pageable);
 }

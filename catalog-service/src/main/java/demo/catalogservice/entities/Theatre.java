@@ -34,4 +34,7 @@ public class Theatre {
 
     @OneToMany(mappedBy = "theatre")
     private List<Screen> screens = new ArrayList<>();
+
+    @Column(nullable = false)
+    private Long vendorId;
 }

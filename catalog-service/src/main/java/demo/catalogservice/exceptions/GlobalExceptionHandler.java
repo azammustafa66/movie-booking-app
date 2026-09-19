@@ -1,5 +1,6 @@
 package demo.catalogservice.exceptions;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,25 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    /** A vendor (or other authenticated caller) acting on a resource they don't own. */
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<String> handleForbiddenException(ForbiddenException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
+    /** A well-formed request that violates a cross-field domain rule (e.g. a show ending before it starts). */
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<String> handleInvalidRequestException(InvalidRequestException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    /** A write that violates a DB constraint, e.g. a duplicate genre name or a duplicate seat in a screen. */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body("Request conflicts with existing data (e.g. a duplicate or invalid reference)");
     }
 
     /** Turns {@code @Valid} request body failures into a field -> message map instead of Spring's default error body. */

@@ -9,11 +9,11 @@ import demo.catalogservice.repos.MovieRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -37,6 +37,7 @@ public class MovieService {
     /**
      * @throws MovieNotFoundException if no movie exists with the given id
      */
+    @Cacheable(key = "#movieId", value = "movies")
     public MovieResponseDto getMovieById(Long movieId) {
         log.info("Fetching movie with id {}", movieId);
         Movie movie = movieRepository
@@ -48,11 +49,14 @@ public class MovieService {
         return toDto(movie);
     }
 
-    /** Search-bar lookup as the user types a movie title; matches anywhere in the title, case-insensitively. */
-    public Page<MovieResponseDto> getMovieByTitle(String title, Pageable pageable) {
-        log.info("Searching for movies with title containing '{}'", title);
-        Page<MovieResponseDto> movies = movieRepository.findByTitleContainingIgnoreCase(title, pageable).map(this::toDto);
-        log.info("Found {} movies matching title '{}'", movies.getTotalElements(), title);
+    /** Search-bar lookup as the user types a movie title; matches anywhere in the movieTitle, case-insensitively. */
+    @Cacheable(
+            key = "#movieTitle.trim().toLowerCase() + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort",
+            value = "movieSearch")
+    public Page<MovieResponseDto> getMovieByTitle(String movieTitle, Pageable pageable) {
+        log.info("Searching for movies with movieTitle containing '{}'", movieTitle);
+        Page<MovieResponseDto> movies = movieRepository.findByTitleContainingIgnoreCase(movieTitle, pageable).map(this::toDto);
+        log.info("Found {} movies matching movieTitle '{}'", movies.getTotalElements(), movieTitle);
         return movies;
     }
 

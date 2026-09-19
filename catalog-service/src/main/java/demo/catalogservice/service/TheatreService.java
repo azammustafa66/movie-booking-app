@@ -7,6 +7,7 @@ import demo.catalogservice.repos.TheatreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,10 @@ public class TheatreService {
     }
 
     /** "Pick your city" step: theatres available in the city the user selected. */
+    @Cacheable(
+            value = "theatresByCity",
+            key = "#city.trim().toLowerCase()"
+    )
     public Page<TheatreResponseDto> getTheatresByCity(String city, Pageable pageable) {
         log.info("Fetching theatres in city '{}'", city);
         Page<TheatreResponseDto> theatres = theatreRepository.findByCityIgnoreCase(city, pageable).map(this::toDto);
@@ -51,6 +56,10 @@ public class TheatreService {
     }
 
     /** Search-bar lookup as the user types a theatre name. */
+    @Cacheable(
+            value = "theatreByName",
+            key = "#name.trim().toLowerCase()"
+    )
     public Page<TheatreResponseDto> getTheatresByName(String name, Pageable pageable) {
         log.info("Searching for theatres with name containing '{}'", name);
         Page<TheatreResponseDto> theatres = theatreRepository.findByNameContainingIgnoreCase(name, pageable).map(this::toDto);
