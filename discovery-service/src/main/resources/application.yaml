@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: discovery-service
+  web:
+    error:
+      # Never leak internals to a caller; stack traces belong in the log, not the response.
+      include-stacktrace: never
+      include-message: always
+
+server:
+  port: 8084
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    # This is the only Eureka node. The server builds its peer-replication list from
+    # serviceUrl, so leaving it unset aims replication at Eureka's built-in default
+    # (localhost:8761) and floods the log with connection-refused retries. Naming
+    # ourselves here makes the peer list self-only, which Eureka skips.
+    service-url:
+      defaultZone: "${EUREKA_URL:http://localhost:8084/eureka/}"

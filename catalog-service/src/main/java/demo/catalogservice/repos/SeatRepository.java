@@ -12,4 +12,6 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
 
     /** Filtering the seat map by category (e.g. only PREMIUM seats) for pricing/display, in row-major reading order. */
     List<Seat> findByScreen_IdAndSeatTypeOrderByRowLabelAscSeatNumberAsc(Long screenId, SeatType seatType);
+
+    List<Seat> findByScreen_IdAndIdIn(Long screenId, List<Long> seatIds);
 }

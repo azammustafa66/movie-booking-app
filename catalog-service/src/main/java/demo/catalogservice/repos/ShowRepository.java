@@ -3,12 +3,14 @@ package demo.catalogservice.repos;
 import demo.catalogservice.entities.Show;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface ShowRepository extends JpaRepository<Show, Long> {
     /** All showtimes for a movie, e.g. its "showtimes" tab before a city/date is picked. */
@@ -38,4 +40,11 @@ public interface ShowRepository extends JpaRepository<Show, Long> {
             @Param("dayStart") LocalDateTime dayStart,
             @Param("dayEnd") LocalDateTime dayEnd
     );
+
+    /** Loads a show with its screen (and the screen's theatre) eagerly, for callers that need the full chain without N+1 lazy fetches. */
+    @EntityGraph(attributePaths = {
+            "screen",
+            "screen.theatre"
+    })
+    Optional<Show> findWithScreenById(Long showId);
 }

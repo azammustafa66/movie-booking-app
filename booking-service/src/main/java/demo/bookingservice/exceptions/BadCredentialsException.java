@@ -1,7 +1,5 @@
 package demo.bookingservice.exceptions;
 
-import demo.userservice.exceptions.GlobalExceptionHandler;
-
 /**
  * Thrown when login credentials or a refresh token are invalid, unknown,
  * revoked, or expired. Mapped to {@code 401 Unauthorized} by

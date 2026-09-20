@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @Entity
@@ -24,6 +26,9 @@ public class Seat {
 
     @Column(nullable = false)
     private Integer seatNumber;
+
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal price;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

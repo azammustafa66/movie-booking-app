@@ -1,6 +1,5 @@
 package demo.bookingservice.exceptions;
 
-import demo.userservice.exceptions.UserAlreadyExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -20,8 +19,27 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
 
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<String> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
+    /** A caller whose role isn't allowed to perform this action (e.g. a vendor trying to book seats). */
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<String> handleForbiddenException(ForbiddenException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
+    /** A seat that's already booked, currently locked by another booking, or doesn't exist on this show. */
+    @ExceptionHandler(SeatUnavailableException.class)
+    public ResponseEntity<String> handleSeatUnavailableException(SeatUnavailableException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
+    /** No booking with this id exists for the caller — same response whether the id is wrong or belongs to someone else. */
+    @ExceptionHandler(BookingNotFoundException.class)
+    public ResponseEntity<String> handleBookingNotFoundException(BookingNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    /** A booking or seat whose current state (wrong status, expired hold, mismatched owner) rules out the requested action. */
+    @ExceptionHandler(InvalidBookingStateException.class)
+    public ResponseEntity<String> handleInvalidBookingStateException(InvalidBookingStateException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 

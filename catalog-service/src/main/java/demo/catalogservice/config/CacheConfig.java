@@ -7,6 +7,7 @@ import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
@@ -35,7 +36,7 @@ public class CacheConfig {
         );
 
         cacheManager.registerCustomCache(
-                "theatersByCity",
+                "theatresByCity",
                 Caffeine.newBuilder()
                         .expireAfterWrite(1, TimeUnit.HOURS)
                         .maximumSize(500)
@@ -43,12 +44,17 @@ public class CacheConfig {
         );
 
         cacheManager.registerCustomCache(
-                "theatersByName",
+                "theatreByName",
                 Caffeine.newBuilder()
                         .expireAfterWrite(1, TimeUnit.HOURS)
                         .maximumSize(500)
                         .build()
         );
+
+        // Locks the manager to exactly these four caches: an unknown @Cacheable/@CacheEvict
+        // value now fails loudly at startup instead of Caffeine silently handing back an
+        // unbounded, non-expiring cache under whatever name was actually asked for.
+        cacheManager.setCacheNames(List.of("movies", "movieSearch", "theatresByCity", "theatreByName"));
 
         return cacheManager;
     }

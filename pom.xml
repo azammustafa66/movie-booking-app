@@ -20,6 +20,7 @@
         <module>catalog-service</module>
         <module>booking-service</module>
         <module>api-gateway</module>
+        <module>discovery-service</module>
     </modules>
 
 
