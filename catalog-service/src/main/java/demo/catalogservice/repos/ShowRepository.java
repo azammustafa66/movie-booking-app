@@ -13,13 +13,23 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ShowRepository extends JpaRepository<Show, Long> {
+
+    // Every list-returning query below is followed by a DTO conversion that touches
+    // movie, screen, and screen.theatre — the @EntityGraph on each one avoids that
+    // costing an extra round trip per row. All three are @ManyToOne, so — unlike a
+    // @ManyToMany/@OneToMany — eager-fetching them can't multiply row counts or
+    // break Pageable's in-database paging.
+
     /** All showtimes for a movie, e.g. its "showtimes" tab before a city/date is picked. */
+    @EntityGraph(attributePaths = {"movie", "screen", "screen.theatre"})
     Page<Show> findByMovie_Id(Long movieId, Pageable pageable);
 
     /** Scheduling check: does this screen already have a show in this time window? */
+    @EntityGraph(attributePaths = {"movie", "screen", "screen.theatre"})
     Page<Show> findByScreen_IdAndStartTimeBetween(Long screenId, LocalDateTime from, LocalDateTime to, Pageable pageable);
 
     /** All showtimes at a given theatre on a given day, for a theatre's own listings page. */
+    @EntityGraph(attributePaths = {"movie", "screen", "screen.theatre"})
     List<Show> findByScreen_Theatre_IdAndStartTimeBetweenOrderByStartTimeAsc(
             Long theatreId, LocalDateTime dayStart, LocalDateTime dayEnd);
 
@@ -27,6 +37,7 @@ public interface ShowRepository extends JpaRepository<Show, Long> {
      * Core booking-flow query: showtimes for one movie, in one city, on one day —
      * what the user sees after picking a movie, a city, and a date.
      */
+    @EntityGraph(attributePaths = {"movie", "screen", "screen.theatre"})
     @Query("""
         SELECT s FROM Show s
         WHERE s.movie.id = :movieId

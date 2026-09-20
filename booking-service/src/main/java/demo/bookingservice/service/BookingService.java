@@ -100,7 +100,9 @@ public class BookingService {
 
         Booking savedBooking = bookingRepository.save(booking);
 
-        for (Long seatId : request.seatIds()) {
+        List<Long> sortedSeatIds = new ArrayList<>(request.seatIds());
+        java.util.Collections.sort(sortedSeatIds);
+        for (Long seatId : sortedSeatIds) {
             lockSeat(
                     request.showId(),
                     seatId,
@@ -195,8 +197,17 @@ public class BookingService {
             throw new InvalidBookingStateException("Booking cannot be cancelled");
         }
 
-        for (BookingSeat seat : booking.getBookingSeats()) {
-            releaseSeat(bookingId, seat.getShowId(), seat.getSeatId());
+        // A CONFIRMED booking's seats are BOOKED, not LOCKED — see releaseSeat's Javadoc.
+        ShowSeatStatus expectedSeatStatus = booking.getStatus() == BookingStatus.CONFIRMED
+                ? ShowSeatStatus.BOOKED
+                : ShowSeatStatus.LOCKED;
+
+        List<BookingSeat> sortedSeats = booking.getBookingSeats().stream()
+                .sorted(java.util.Comparator.comparing(BookingSeat::getSeatId))
+                .toList();
+
+        for (BookingSeat seat : sortedSeats) {
+            releaseSeat(bookingId, seat.getShowId(), seat.getSeatId(), expectedSeatStatus);
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
@@ -223,7 +234,8 @@ public class BookingService {
      *
      * @throws BookingNotFoundException      if no such booking exists for the caller
      * @throws InvalidBookingStateException  if the booking isn't {@code PENDING} (already confirmed/cancelled/expired),
-     *                                        or its hold has already lapsed — the latter also marks it {@code EXPIRED}
+     *                                        or its hold has already lapsed (left {@code PENDING} for
+     *                                        {@link #expireBooking}'s sweep to formally expire)
      * @throws SeatUnavailableException      if any of the booking's seats is no longer locked for it
      */
     @Transactional
@@ -239,13 +251,19 @@ public class BookingService {
         LocalDateTime now = LocalDateTime.now();
 
         if (booking.getExpiresAt() == null || !booking.getExpiresAt().isAfter(now)) {
-            booking.setStatus(BookingStatus.EXPIRED);
+            // Not persisted here — throwing rolls back this whole @Transactional method,
+            // so the actual EXPIRED transition is left to BookingExpiryService's sweep,
+            // which picks this booking up on its next run (within 30s).
             throw new InvalidBookingStateException("Booking has expired");
         }
 
         List<ShowSeat> showSeats = new ArrayList<>();
 
-        for (BookingSeat bookingSeat : booking.getBookingSeats()) {
+        List<BookingSeat> sortedSeats = booking.getBookingSeats().stream()
+                .sorted(java.util.Comparator.comparing(BookingSeat::getSeatId))
+                .toList();
+
+        for (BookingSeat bookingSeat : sortedSeats) {
 
             ShowSeat showSeat = showSeatRepository
                     .findByShowIdAndSeatId(
@@ -318,11 +336,16 @@ public class BookingService {
             return;
         }
 
-        for (BookingSeat bookingSeat : booking.getBookingSeats()) {
+        List<BookingSeat> sortedSeats = booking.getBookingSeats().stream()
+                .sorted(java.util.Comparator.comparing(BookingSeat::getSeatId))
+                .toList();
+
+        for (BookingSeat bookingSeat : sortedSeats) {
             releaseSeat(
                     booking.getId(),
                     booking.getShowId(),
-                    bookingSeat.getSeatId()
+                    bookingSeat.getSeatId(),
+                    ShowSeatStatus.LOCKED
             );
         }
 
@@ -332,20 +355,36 @@ public class BookingService {
     /**
      * The inverse of {@link #lockSeat}: puts one seat back to
      * {@code AVAILABLE}, clearing its lock. Requires an existing
-     * {@link ShowSeat} row — unlike {@link #lockSeat}, there's no
+     * {@link ShowSeat} row already in {@code expectedStatus} and owned by
+     * {@code bookingId} — unlike {@link #lockSeat}, there's no
      * create-on-demand case, since a seat being released must already have
-     * been locked for this exact {@code bookingId}.
+     * been held for this exact booking.
+     * <p>
+     * {@code expectedStatus} exists specifically to close a race between
+     * {@link #expireBooking}'s sweep and a same-moment {@link #confirmBooking}:
+     * both can reach this method for the same seat, but only one should win.
+     * {@link #expireBooking} only ever expects {@code LOCKED} (a booking it's
+     * expiring is still {@code PENDING}); if {@code confirmBooking} already
+     * flipped the seat to {@code BOOKED} first, the mismatch here throws and
+     * rolls back the sweep's transaction instead of silently reverting a
+     * booking the customer just confirmed. {@link #cancelBooking} passes
+     * whichever status is actually correct for the booking it's cancelling
+     * ({@code LOCKED} for {@code PENDING}, {@code BOOKED} for
+     * {@code CONFIRMED}), since cancelling a confirmed booking is legitimate
+     * and its seats are genuinely {@code BOOKED}, not {@code LOCKED}.
      *
      * @throws SeatUnavailableException     if the seat has no {@link ShowSeat} row at all
-     * @throws InvalidBookingStateException if the seat is currently held by a different booking
+     * @throws InvalidBookingStateException if the seat belongs to a different booking, or isn't
+     *                                       in {@code expectedStatus} (someone else already changed it)
      */
-    private void releaseSeat(Long bookingId, Long showId, Long seatId) {
+    private void releaseSeat(Long bookingId, Long showId, Long seatId, ShowSeatStatus expectedStatus) {
         ShowSeat seat = showSeatRepository
                 .findByShowIdAndSeatId(showId, seatId)
                 .orElseThrow(() -> new SeatUnavailableException("Seat does not exist for the show"));
 
-        if (!bookingId.equals(seat.getBookingId())) {
-            throw new InvalidBookingStateException("Seat does not belong to the booking");
+        if (!bookingId.equals(seat.getBookingId()) || seat.getStatus() != expectedStatus) {
+            throw new InvalidBookingStateException(
+                    "Seat is not " + expectedStatus + " for booking " + bookingId);
         }
 
         seat.setStatus(ShowSeatStatus.AVAILABLE);

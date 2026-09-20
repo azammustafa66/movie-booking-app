@@ -1,7 +1,5 @@
 package demo.catalogservice.exceptions;
 
-import demo.catalogservice.exceptions.GlobalExceptionHandler;
-
 /**
  * Thrown when login credentials, a refresh token, or (in this service) an
  * {@code Authorization} bearer token are missing, malformed, invalid, or

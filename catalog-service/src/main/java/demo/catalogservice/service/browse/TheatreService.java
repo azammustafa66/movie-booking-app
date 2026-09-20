@@ -46,7 +46,7 @@ public class TheatreService {
     /** "Pick your city" step: theatres available in the city the user selected. */
     @Cacheable(
             value = "theatresByCity",
-            key = "#city.trim().toLowerCase()"
+            key = "#city.trim().toLowerCase() + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort"
     )
     public Page<TheatreResponseDto> getTheatresByCity(String city, Pageable pageable) {
         log.info("Fetching theatres in city '{}'", city);
@@ -58,7 +58,7 @@ public class TheatreService {
     /** Search-bar lookup as the user types a theatre name. */
     @Cacheable(
             value = "theatreByName",
-            key = "#name.trim().toLowerCase()"
+            key = "#name.trim().toLowerCase() + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort"
     )
     public Page<TheatreResponseDto> getTheatresByName(String name, Pageable pageable) {
         log.info("Searching for theatres with name containing '{}'", name);

@@ -57,7 +57,7 @@ public class IdentityHeaderFilter extends OncePerRequestFilter {
         if (authentication instanceof JwtAuthenticationToken jwtAuthentication) {
             Jwt jwt = jwtAuthentication.getToken();
             // JwtService embeds the caller's app_users.id as the token subject, not a custom claim.
-            identityHeaders.put(USER_ID_HEADER, jwt.getSubject());
+            putIfPresent(identityHeaders, USER_ID_HEADER, jwt.getSubject());
             putIfPresent(identityHeaders, USER_ROLE_HEADER, jwt.getClaimAsString("role"));
             putIfPresent(identityHeaders, USER_EMAIL_HEADER, jwt.getClaimAsString("email"));
         }

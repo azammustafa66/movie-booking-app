@@ -1,5 +1,6 @@
 package demo.bookingservice.exceptions;
 
+import feign.FeignException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -43,6 +44,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 
+    /** {@code showId} doesn't exist, per catalog-service's own validation (see {@code CatalogClient}). */
+    @ExceptionHandler(FeignException.NotFound.class)
+    public ResponseEntity<String> handleCatalogNotFound(FeignException.NotFound ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.contentUTF8());
+    }
+
+    /** One or more requested seats don't belong to the show's screen, per catalog-service's own validation. */
+    @ExceptionHandler(FeignException.BadRequest.class)
+    public ResponseEntity<String> handleCatalogBadRequest(FeignException.BadRequest ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.contentUTF8());
+    }
+
     /** Turns {@code @Valid} request body failures into a field -> message map instead of Spring's default error body. */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException ex) {
@@ -51,5 +64,10 @@ public class GlobalExceptionHandler {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    }
+    /** Handles unique constraint violations, e.g. concurrent lock on previously unlocked seat. */
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<String> handleDataIntegrityViolationException(org.springframework.dao.DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body("Seat is currently locked or booked by another transaction");
     }
 }

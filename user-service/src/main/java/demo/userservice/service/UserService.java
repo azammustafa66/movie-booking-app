@@ -1,6 +1,10 @@
 package demo.userservice.service;
 
-import demo.userservice.dto.*;
+import demo.userservice.dto.LoginRequestDto;
+import demo.userservice.dto.LoginResponseDto;
+import demo.userservice.dto.RefreshTokenRequestDto;
+import demo.userservice.dto.SignUpRequestDto;
+import demo.userservice.dto.SignUpResponseDto;
 import demo.userservice.entities.AppUser;
 import demo.userservice.entities.UserSession;
 import demo.userservice.exceptions.BadCredentialsException;
@@ -8,13 +12,13 @@ import demo.userservice.exceptions.UserAlreadyExistsException;
 import demo.userservice.repos.UserRepository;
 import demo.userservice.repos.UserSessionRepository;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -43,7 +47,7 @@ public class UserService {
     private final RefreshTokenService refreshTokenService;
 
     @Value("${jwt.refresh-token-expiration-seconds}")
-    Long refreshTokenExpirationSeconds;
+    private Long refreshTokenExpirationSeconds;
 
     /**
      * Registers a new user with a hashed password and the default role.
@@ -51,17 +55,17 @@ public class UserService {
      * @throws UserAlreadyExistsException if the email is already registered
      */
     public SignUpResponseDto createUser(SignUpRequestDto signUpRequest) {
-        log.info("Signup attempt for {}", signUpRequest.getEmail());
+        log.info("Signup attempt for {}", signUpRequest.email());
 
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            log.warn("Signup rejected, email already registered: {}", signUpRequest.getEmail());
+        if (userRepository.existsByEmail(signUpRequest.email())) {
+            log.warn("Signup rejected, email already registered: {}", signUpRequest.email());
             throw new UserAlreadyExistsException("User with email already exists");
         }
         AppUser user = new AppUser();
-        user.setEmail(signUpRequest.getEmail());
-        user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
-        user.setFirstName(signUpRequest.getFirstName());
-        user.setLastName(signUpRequest.getLastName());
+        user.setEmail(signUpRequest.email());
+        user.setPassword(passwordEncoder.encode(signUpRequest.password()));
+        user.setFirstName(signUpRequest.firstName());
+        user.setLastName(signUpRequest.lastName());
         // Role defaults to CUSTOMER on the entity itself; no need to set it here.
 
         AppUser savedUser = userRepository.save(user);

@@ -13,8 +13,9 @@ import org.springframework.security.web.SecurityFilterChain;
 /**
  * The gateway's only auth logic: verify the caller's JWT (signature +
  * expiration, via {@link JwtConfig}'s {@code JwtDecoder}) and translate it
- * into the {@code X-User-Id}/{@code X-User-Role}/{@code X-User-Email} headers every downstream
- * service trusts (see {@link IdentityHeaderFilter}). Role checks here are
+ * into the {@code X-User-Id}/{@code X-User-Role}/{@code X-User-Email}
+ * headers every downstream service trusts (see {@link IdentityHeaderFilter}).
+ * Role checks here are
  * coarse and duplicate nothing service-specific: fine-grained rules (a
  * vendor only touching their own theatre, a customer only cancelling their
  * own booking) stay downstream, where the data actually lives.

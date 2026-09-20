@@ -1,7 +1,6 @@
 package demo.notificationservice.service;
 
 import demo.notificationservice.messaging.BookingNotificationEvent;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -17,14 +16,16 @@ import org.springframework.stereotype.Service;
  * code change.
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    private final String fromAddress;
 
-    @Value("${notification.mail.from}")
-    private String fromAddress;
+    public EmailService(JavaMailSender mailSender, @Value("${notification.mail.from}") String fromAddress) {
+        this.mailSender = mailSender;
+        this.fromAddress = fromAddress;
+    }
 
     /**
      * @throws org.springframework.mail.MailException if the SMTP server rejects or can't be reached —
