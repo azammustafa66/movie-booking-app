@@ -50,7 +50,7 @@ class EventBookingUser(HttpUser):
         Mimic user browsing the seat matrix for a show.
         """
         # Assuming Show ID 1 exists
-        with self.client.get("/api/v1/bookings/shows/1/seats", catch_response=True) as res:
+        with self.client.get("/api/v1/bookings/shows/7/seats", catch_response=True) as res:
             if res.status_code == 200:
                 res.success()
             elif res.status_code == 404:
@@ -66,9 +66,9 @@ class EventBookingUser(HttpUser):
         Since it's load testing, we expect many 409 Conflicts which means the system is behaving correctly.
         """
         booking_payload = {
-            "showId": 1,
-            # Hardcoding seat ID 101 to simulate heavy contention for popular seats
-            "seatIds": [101]
+            "showId": 7,
+            # Hardcoding seat ID 481 to simulate heavy contention for popular seats
+            "seatIds": [481]
         }
         with self.client.post("/api/v1/bookings", json=booking_payload, catch_response=True) as res:
             if res.status_code == 200:

@@ -1,0 +1,118 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------< demo:catalog-service >------------------------
+[INFO] Building catalog-service 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:4.1.1:run (default-cli) > test-compile @ catalog-service >>>
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ catalog-service ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 4 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ catalog-service ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ catalog-service ---
+[INFO] skip non existing resourceDirectory /Users/azam/dev/movie-booking-app/catalog-service/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ catalog-service ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] <<< spring-boot:4.1.1:run (default-cli) < test-compile @ catalog-service <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:4.1.1:run (default-cli) @ catalog-service ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-09-20T18:11:40.029+05:30  INFO 11902 --- [catalog-service] [  restartedMain] d.c.CatalogServiceApplication            : Starting CatalogServiceApplication using Java 21.0.12 with PID 11902 (/Users/azam/dev/movie-booking-app/catalog-service/target/classes started by azam in /Users/azam/dev/movie-booking-app/catalog-service)
+2026-09-20T18:11:40.030+05:30  INFO 11902 --- [catalog-service] [  restartedMain] d.c.CatalogServiceApplication            : No active profile set, falling back to 1 default profile: "default"
+2026-09-20T18:11:40.054+05:30  INFO 11902 --- [catalog-service] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-09-20T18:11:40.054+05:30  INFO 11902 --- [catalog-service] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-09-20T18:11:40.370+05:30  INFO 11902 --- [catalog-service] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-20T18:11:40.421+05:30  INFO 11902 --- [catalog-service] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 48 ms. Found 6 JPA repository interfaces.
+2026-09-20T18:11:40.506+05:30  INFO 11902 --- [catalog-service] [  restartedMain] o.s.cloud.context.scope.GenericScope     : BeanFactory id=3dc3137b-c3fa-3ac8-a854-74a4cc787825
+2026-09-20T18:11:40.705+05:30  INFO 11902 --- [catalog-service] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8082 (http)
+2026-09-20T18:11:40.711+05:30  INFO 11902 --- [catalog-service] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-20T18:11:40.711+05:30  INFO 11902 --- [catalog-service] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-09-20T18:11:40.724+05:30  INFO 11902 --- [catalog-service] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 670 ms
+2026-09-20T18:11:40.813+05:30  INFO 11902 --- [catalog-service] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-20T18:11:40.864+05:30  INFO 11902 --- [catalog-service] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@4107707e
+2026-09-20T18:11:40.865+05:30  INFO 11902 --- [catalog-service] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-20T18:11:40.872+05:30  INFO 11902 --- [catalog-service] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/events_booking_app?currentSchema=catalog (PostgreSQL 16.14)
+2026-09-20T18:11:40.897+05:30  INFO 11902 --- [catalog-service] [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 5 migrations (execution time 00:00.010s)
+2026-09-20T18:11:40.914+05:30  INFO 11902 --- [catalog-service] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "catalog": 4
+2026-09-20T18:11:40.915+05:30  INFO 11902 --- [catalog-service] [  restartedMain] o.f.core.internal.command.DbMigrate      : Schema "catalog" is up to date. No migration necessary.
+2026-09-20T18:11:40.947+05:30  INFO 11902 --- [catalog-service] [  restartedMain] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-09-20T18:11:40.968+05:30  INFO 11902 --- [catalog-service] [  restartedMain] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.5.Final
+2026-09-20T18:11:41.144+05:30  INFO 11902 --- [catalog-service] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-20T18:11:41.179+05:30  INFO 11902 --- [catalog-service] [  restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/events_booking_app?currentSchema=catalog]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 16.14
+	Default catalog/schema: events_booking_app/catalog
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-09-20T18:11:41.602+05:30  INFO 11902 --- [catalog-service] [  restartedMain] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-20T18:11:41.624+05:30  INFO 11902 --- [catalog-service] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-20T18:11:41.656+05:30  INFO 11902 --- [catalog-service] [  restartedMain] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-09-20T18:11:42.040+05:30  WARN 11902 --- [catalog-service] [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-20T18:11:42.221+05:30  INFO 11902 --- [catalog-service] [  restartedMain] DiscoveryClientOptionalArgsConfiguration : Eureka HTTP Client uses RestClient.
+2026-09-20T18:11:42.241+05:30  INFO 11902 --- [catalog-service] [  restartedMain] o.s.c.n.eureka.InstanceInfoFactory       : Setting initial instance status as: STARTING
+2026-09-20T18:11:42.248+05:30  INFO 11902 --- [catalog-service] [  restartedMain] com.netflix.discovery.DiscoveryClient    : Initializing Eureka in region us-east-1
+2026-09-20T18:11:42.249+05:30  INFO 11902 --- [catalog-service] [  restartedMain] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-09-20T18:11:42.251+05:30  INFO 11902 --- [catalog-service] [  restartedMain] com.netflix.discovery.DiscoveryClient    : Disable delta property : false
+2026-09-20T18:11:42.251+05:30  INFO 11902 --- [catalog-service] [  restartedMain] com.netflix.discovery.DiscoveryClient    : Single vip registry refresh property : null
+2026-09-20T18:11:42.251+05:30  INFO 11902 --- [catalog-service] [  restartedMain] com.netflix.discovery.DiscoveryClient    : Force full registry fetch : false
+2026-09-20T18:11:42.251+05:30  INFO 11902 --- [catalog-service] [  restartedMain] com.netflix.discovery.DiscoveryClient    : Application is null : false
+2026-09-20T18:11:42.251+05:30  INFO 11902 --- [catalog-service] [  restartedMain] com.netflix.discovery.DiscoveryClient    : Registered Applications size is zero : true
+2026-09-20T18:11:42.251+05:30  INFO 11902 --- [catalog-service] [  restartedMain] com.netflix.discovery.DiscoveryClient    : Application version is -1: true
+2026-09-20T18:11:42.251+05:30  INFO 11902 --- [catalog-service] [  restartedMain] com.netflix.discovery.DiscoveryClient    : Getting all instance registry info from the eureka server
+2026-09-20T18:11:42.350+05:30  INFO 11902 --- [catalog-service] [  restartedMain] com.netflix.discovery.DiscoveryClient    : The response status is 200
+2026-09-20T18:11:42.350+05:30  INFO 11902 --- [catalog-service] [  restartedMain] com.netflix.discovery.DiscoveryClient    : Starting heartbeat executor: renew interval is: 30
+2026-09-20T18:11:42.351+05:30  INFO 11902 --- [catalog-service] [  restartedMain] c.n.discovery.InstanceInfoReplicator     : InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-09-20T18:11:42.351+05:30  INFO 11902 --- [catalog-service] [  restartedMain] com.netflix.discovery.DiscoveryClient    : Discovery Client initialized at timestamp 1789908102351 with initial instances count: 0
+2026-09-20T18:11:42.353+05:30  INFO 11902 --- [catalog-service] [  restartedMain] o.s.c.n.e.s.EurekaServiceRegistry        : Registering application CATALOG-SERVICE with eureka with status UP
+2026-09-20T18:11:42.353+05:30  INFO 11902 --- [catalog-service] [  restartedMain] com.netflix.discovery.DiscoveryClient    : Saw local status change event StatusChangeEvent [timestamp=1789908102353, current=UP, previous=STARTING]
+2026-09-20T18:11:42.354+05:30  INFO 11902 --- [catalog-service] [foReplicator-%d] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_CATALOG-SERVICE/192.168.1.4:catalog-service:8082: registering service...
+2026-09-20T18:11:42.360+05:30  INFO 11902 --- [catalog-service] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8082 (http) with context path '/'
+2026-09-20T18:11:42.361+05:30  INFO 11902 --- [catalog-service] [  restartedMain] .s.c.n.e.s.EurekaAutoServiceRegistration : Updating port to 8082
+2026-09-20T18:11:42.365+05:30  INFO 11902 --- [catalog-service] [  restartedMain] d.c.CatalogServiceApplication            : Started CatalogServiceApplication in 2.539 seconds (process running for 2.818)
+2026-09-20T18:11:42.369+05:30  INFO 11902 --- [catalog-service] [foReplicator-%d] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_CATALOG-SERVICE/192.168.1.4:catalog-service:8082 - registration status: 204
+2026-09-20T18:12:12.354+05:30  INFO 11902 --- [catalog-service] [reshExecutor-%d] com.netflix.discovery.DiscoveryClient    : Disable delta property : false
+2026-09-20T18:12:12.356+05:30  INFO 11902 --- [catalog-service] [reshExecutor-%d] com.netflix.discovery.DiscoveryClient    : Single vip registry refresh property : null
+2026-09-20T18:12:12.356+05:30  INFO 11902 --- [catalog-service] [reshExecutor-%d] com.netflix.discovery.DiscoveryClient    : Force full registry fetch : false
+2026-09-20T18:12:12.356+05:30  INFO 11902 --- [catalog-service] [reshExecutor-%d] com.netflix.discovery.DiscoveryClient    : Application is null : false
+2026-09-20T18:12:12.356+05:30  INFO 11902 --- [catalog-service] [reshExecutor-%d] com.netflix.discovery.DiscoveryClient    : Registered Applications size is zero : true
+2026-09-20T18:12:12.356+05:30  INFO 11902 --- [catalog-service] [reshExecutor-%d] com.netflix.discovery.DiscoveryClient    : Application version is -1: false
+2026-09-20T18:12:12.356+05:30  INFO 11902 --- [catalog-service] [reshExecutor-%d] com.netflix.discovery.DiscoveryClient    : Getting all instance registry info from the eureka server
+2026-09-20T18:12:12.381+05:30  INFO 11902 --- [catalog-service] [reshExecutor-%d] com.netflix.discovery.DiscoveryClient    : The response status is 200
+2026-09-20T18:16:42.256+05:30  INFO 11902 --- [catalog-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  05:30 min
+[INFO] Finished at: 2026-09-20T18:17:09+05:30
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:4.1.1:run (default-cli) on project catalog-service: Process terminated with exit code: 137 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

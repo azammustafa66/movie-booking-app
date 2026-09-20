@@ -5,8 +5,8 @@ import time
 import sys
 
 BASE_URL = "http://localhost:8080/api/v1"
-SHOW_ID = 1
-SEAT_ID = 101
+SHOW_ID = 7
+SEAT_ID = 481
 
 def create_user_and_login():
     session = requests.Session()
@@ -70,6 +70,8 @@ def main():
     success_count = 0
     conflict_count = 0
     other_errors = 0
+    successful_session = None
+    successful_booking_id = None
     
     start_test = time.time()
     with concurrent.futures.ThreadPoolExecutor(max_workers=NUM_USERS) as executor:
@@ -82,6 +84,13 @@ def main():
             
             if status == 200:
                 success_count += 1
+                try:
+                    import json
+                    data = json.loads(text)
+                    successful_booking_id = data.get("bookingId")
+                    successful_session = sessions[user_idx]
+                except Exception:
+                    pass
             elif status == 409:
                 conflict_count += 1
             else:
@@ -97,6 +106,14 @@ def main():
     print(f"Conflicts (HTTP 409): {conflict_count} (Expected: {len(sessions) - 1})")
     print(f"Other Errors: {other_errors} (Expected: 0)")
     print("="*30)
+
+    if successful_booking_id and successful_session:
+        print(f"\nStep 3: Cancelling the successful booking (ID: {successful_booking_id}) to free the seat...")
+        cancel_res = successful_session.delete(f"{BASE_URL}/bookings/{successful_booking_id}")
+        if cancel_res.status_code == 204:
+            print("Cancellation successful. The seat is now available for future tests.")
+        else:
+            print(f"Cancellation failed with status {cancel_res.status_code}: {cancel_res.text}")
 
 if __name__ == "__main__":
     main()

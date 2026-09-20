@@ -45,7 +45,7 @@ def login(user_data):
     print(f"Failed to login {user_data['email']}: {res.status_code}")
     sys.exit(1)
 
-def test_endpoint(name, method, url, token, expected_status):
+def check_endpoint(name, method, url, token, expected_status):
     headers = {"Authorization": f"Bearer {token}"} if token else {}
     if method == "GET":
         res = requests.get(url, headers=headers)
@@ -56,7 +56,7 @@ def test_endpoint(name, method, url, token, expected_status):
     icon = "✅" if status == expected_status else "❌"
     print(f"{icon} {name:30} -> Expected: {expected_status}, Got: {status}")
 
-def main():
+def test_rbac_flow():
     print("--- 1. Registering Users ---")
     customer = register_user("CUSTOMER")
     vendor = register_user("VENDOR")
@@ -77,23 +77,20 @@ def main():
     # 1. Customer Endpoints
     print("\n[Testing Customer Access]")
     # Customer can get seats (public/customer)
-    test_endpoint("Customer -> Get Seats", "GET", f"{BASE_URL}/bookings/shows/1/seats", customer_token, 200)
+    check_endpoint("Customer -> Get Seats", "GET", f"{BASE_URL}/bookings/shows/7/seats", customer_token, 200)
     # Customer CANNOT access Vendor theatres
-    test_endpoint("Customer -> Vendor Endpoints", "GET", f"{BASE_URL}/vendor/theatres", customer_token, 403)
+    check_endpoint("Customer -> Vendor Endpoints", "GET", f"{BASE_URL}/vendor/theatres", customer_token, 403)
     
     # 2. Vendor Endpoints
     print("\n[Testing Vendor Access]")
     # Vendor CAN access their own theatres
-    test_endpoint("Vendor -> Vendor Endpoints", "GET", f"{BASE_URL}/vendor/theatres", vendor_token, 200)
+    check_endpoint("Vendor -> Vendor Endpoints", "GET", f"{BASE_URL}/vendor/theatres", vendor_token, 200)
     # Vendor CANNOT book tickets (Booking controller explicitly blocks VENDORs)
-    test_endpoint("Vendor -> Book Ticket", "POST", f"{BASE_URL}/bookings", vendor_token, 403)
+    check_endpoint("Vendor -> Book Ticket", "POST", f"{BASE_URL}/bookings", vendor_token, 403)
     
     # 3. Admin Endpoints
     print("\n[Testing Admin Access]")
-    # Admin can access admin movies endpoint (Assuming GET /api/v1/admin/movies exists, or we get 405/404 but NOT 403)
-    test_endpoint("Admin -> Admin Endpoints", "GET", f"{BASE_URL}/admin/movies", admin_token, 200)
+    # Admin can access admin endpoints (We use POST because AdminController only exposes mutations. Expect 400 Bad Request for dummy payload, NOT 403)
+    check_endpoint("Admin -> Admin Endpoints", "POST", f"{BASE_URL}/admin/movies", admin_token, 400)
     # Admin CANNOT access vendor endpoints (usually separated)
-    test_endpoint("Admin -> Vendor Endpoints", "GET", f"{BASE_URL}/vendor/theatres", admin_token, 403)
-
-if __name__ == "__main__":
-    main()
+    check_endpoint("Admin -> Vendor Endpoints", "GET", f"{BASE_URL}/vendor/theatres", admin_token, 403)

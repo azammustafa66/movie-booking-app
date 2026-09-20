@@ -35,6 +35,7 @@ services:
 
   mailhog:
     image: mailhog/mailhog:latest
+    platform: linux/amd64
     container_name: events_mailhog
     ports:
       - "1025:1025" # SMTP server

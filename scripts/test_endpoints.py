@@ -26,7 +26,7 @@ def test_register(session, user_data, capsys):
     
     start_time = time.time()
     try:
-        response = session.post(url, json=user_data)
+        response = session.post(url, json=user_data, timeout=5)
         elapsed = time.time() - start_time
         print(f"Response ({elapsed:.2f}s): {response.status_code}")
         print(response.text)
@@ -48,7 +48,7 @@ def test_login(session, user_data, capsys):
     
     start_time = time.time()
     try:
-        response = session.post(url, json=login_payload)
+        response = session.post(url, json=login_payload, timeout=5)
         elapsed = time.time() - start_time
         print(f"Response ({elapsed:.2f}s): {response.status_code}")
         print(response.text)
@@ -67,22 +67,70 @@ def test_login(session, user_data, capsys):
 def test_booking(session, capsys):
     url = f"{BASE_URL}/bookings"
     # Note: For a real test, we need a valid showId and seatIds from the catalog service.
-    # Here we send a dummy payload to verify the endpoint is secured and processes the request.
+    # Here we send a real payload (showId 7, screen 9). 
+    # Available seatIds for this screen include: [481, 482], [487, 488], [493], etc.
     booking_payload = {
-        "showId": 1,
-        "seatIds": [101, 102]
+        "showId": 7,
+        "seatIds": [487, 488]
     }
     print(f"\n[POST] {url}")
     print(f"Payload: {booking_payload}")
     
     start_time = time.time()
     try:
-        response = session.post(url, json=booking_payload)
+        response = session.post(url, json=booking_payload, timeout=5)
         elapsed = time.time() - start_time
         print(f"Response ({elapsed:.2f}s): {response.status_code}")
         print(response.text)
         
-        # It might return 404/400 due to dummy data, but 401/403 would indicate auth failure
+        # Ensure it didn't fail authentication
         assert response.status_code not in (401, 403), f"Auth failed, got {response.status_code}"
+        
+        # If the booking was successful (200 OK), save the booking ID for the cancellation test
+        if response.status_code == 200:
+            data = response.json()
+            session.last_booking_id = data.get("bookingId")
+            print(f"Saved booking ID: {session.last_booking_id}")
+            
+    except requests.exceptions.ConnectionError:
+        pytest.fail(f"Could not connect to {url}. Is the backend running?")
+
+def test_confirmation(session, capsys):
+    if not hasattr(session, 'last_booking_id') or not session.last_booking_id:
+        pytest.skip("No successful booking to confirm. Skipping confirmation test.")
+        
+    booking_id = session.last_booking_id
+    url = f"{BASE_URL}/bookings/{booking_id}/confirm"
+    print(f"\n[POST] {url}")
+    
+    start_time = time.time()
+    try:
+        response = session.post(url, timeout=5)
+        elapsed = time.time() - start_time
+        print(f"Response ({elapsed:.2f}s): {response.status_code}")
+        print(response.text)
+        
+        # Confirmation returns 200 OK
+        assert response.status_code == 200, f"Expected 200 OK, got {response.status_code}"
+    except requests.exceptions.ConnectionError:
+        pytest.fail(f"Could not connect to {url}. Is the backend running?")
+
+def test_cancellation(session, capsys):
+    if not hasattr(session, 'last_booking_id') or not session.last_booking_id:
+        pytest.skip("No successful booking to cancel. Skipping cancellation test.")
+        
+    booking_id = session.last_booking_id
+    url = f"{BASE_URL}/bookings/{booking_id}"
+    print(f"\n[DELETE] {url}")
+    
+    start_time = time.time()
+    try:
+        response = session.delete(url, timeout=5)
+        elapsed = time.time() - start_time
+        print(f"Response ({elapsed:.2f}s): {response.status_code}")
+        print(response.text)
+        
+        # Cancellation returns 204 No Content
+        assert response.status_code == 204, f"Expected 204 No Content, got {response.status_code}"
     except requests.exceptions.ConnectionError:
         pytest.fail(f"Could not connect to {url}. Is the backend running?")

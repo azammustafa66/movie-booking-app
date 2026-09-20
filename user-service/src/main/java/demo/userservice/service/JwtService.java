@@ -52,7 +52,7 @@ public class JwtService {
                 .claim("role", user.getRole().name())
                 .issuedAt(now)
                 .expiration(expiration)
-                .signWith(secretKey)
+                .signWith(secretKey, Jwts.SIG.HS256)
                 .compact();
     }
 }
