@@ -49,7 +49,6 @@ class EventBookingUser(HttpUser):
         """
         Mimic user browsing the seat matrix for a show.
         """
-        # Assuming Show ID 1 exists
         with self.client.get("/api/v1/bookings/shows/7/seats", catch_response=True) as res:
             if res.status_code == 200:
                 res.success()
