@@ -41,3 +41,6 @@ build/
 
 ### Secrets ###
 .env
+### Logs ###
+*.log
+logs_*.txt
