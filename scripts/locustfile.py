@@ -1,3 +1,4 @@
+import random
 from locust import HttpUser, task, between
 import uuid
 
@@ -44,13 +45,24 @@ class EventBookingUser(HttpUser):
             else:
                 res.failure(f"Login failed: {res.status_code}")
 
+
     @task(3)
     def browse_seats(self):
         """
-        Mimic user browsing the seat matrix for a show.
+        Mimic user browsing the seat matrix for a random show and saving available seats.
         """
-        with self.client.get("/api/v1/bookings/shows/7/seats", catch_response=True) as res:
+        # Pick a random show ID from the available ones
+        self.current_show_id = random.choice([7, 8, 9, 10, 11, 12])
+        self.available_seats = []
+        
+        with self.client.get(f"/api/v1/bookings/shows/{self.current_show_id}/seats", catch_response=True) as res:
             if res.status_code == 200:
+                data = res.json()
+                # Parse the matrix to find available seats
+                for row in data.get("matrix", []):
+                    for seat in row.get("seats", []):
+                        if seat.get("status") == "AVAILABLE":
+                            self.available_seats.append(seat.get("seatId"))
                 res.success()
             elif res.status_code == 404:
                 # Accept 404 for empty database in test setup
@@ -62,12 +74,16 @@ class EventBookingUser(HttpUser):
     def attempt_booking(self):
         """
         Mimic user attempting to book a seat.
-        Since it's load testing, we expect many 409 Conflicts which means the system is behaving correctly.
         """
+        if not hasattr(self, 'current_show_id') or not getattr(self, 'available_seats', None):
+            return # Skip if we haven't successfully browsed seats yet
+            
+        # Pick a random available seat
+        selected_seat_id = random.choice(self.available_seats)
+        
         booking_payload = {
-            "showId": 7,
-            # Hardcoding seat ID 481 to simulate heavy contention for popular seats
-            "seatIds": [481]
+            "showId": self.current_show_id,
+            "seatIds": [selected_seat_id]
         }
         with self.client.post("/api/v1/bookings", json=booking_payload, catch_response=True) as res:
             if res.status_code == 200:
