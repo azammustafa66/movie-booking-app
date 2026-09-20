@@ -67,7 +67,15 @@ public class UserService {
         AppUser savedUser = userRepository.save(user);
         log.info("User created: {}", savedUser.getEmail());
 
-        return modelMapper.map(savedUser, SignUpResponseDto.class);
+        // Built directly rather than via ModelMapper: SignUpResponseDto is a record,
+        // and ModelMapper's default instantiation strategy needs a no-arg constructor,
+        // which records don't have.
+        return new SignUpResponseDto(
+                savedUser.getEmail(),
+                savedUser.getFirstName(),
+                savedUser.getLastName(),
+                savedUser.getCreatedAt()
+        );
     }
 
     /**

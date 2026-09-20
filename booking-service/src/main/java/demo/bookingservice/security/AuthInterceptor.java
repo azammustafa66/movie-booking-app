@@ -14,10 +14,11 @@ import java.util.Set;
  * <p>
  * Identity here is delegated entirely to the upstream API gateway: the
  * gateway holds the Spring Security config, verifies the caller's JWT, and
- * forwards the request with {@code X-User-Id}/{@code X-User-Role} headers
- * already attached. Booking-service never decodes a token itself — it just
- * trusts those two headers, which is only safe because booking-service is
- * not reachable directly from outside the gateway.
+ * forwards the request with {@code X-User-Id}/{@code X-User-Role}/
+ * {@code X-User-Email} headers already attached. Booking-service never
+ * decodes a token itself — it just trusts those headers, which is only
+ * safe because booking-service is not reachable directly from outside the
+ * gateway.
  * <p>
  * Unlike catalog-service's {@code AuthInterceptor} (which requires exactly
  * one role per path), this one takes a <em>set</em> of allowed roles — see
@@ -36,6 +37,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     static final String USER_ID_HEADER = "X-User-Id";
     static final String USER_ROLE_HEADER = "X-User-Role";
+    static final String USER_EMAIL_HEADER = "X-User-Email";
 
     private final Set<Role> allowedRoles;
 
@@ -64,13 +66,14 @@ public class AuthInterceptor implements HandlerInterceptor {
     private AuthenticatedUser extractUser(HttpServletRequest request) {
         String userIdHeader = request.getHeader(USER_ID_HEADER);
         String roleHeader = request.getHeader(USER_ROLE_HEADER);
-        if (userIdHeader == null || roleHeader == null) {
+        String emailHeader = request.getHeader(USER_EMAIL_HEADER);
+        if (userIdHeader == null || roleHeader == null || emailHeader == null) {
             throw new BadCredentialsException(
-                    "Missing " + USER_ID_HEADER + "/" + USER_ROLE_HEADER
+                    "Missing " + USER_ID_HEADER + "/" + USER_ROLE_HEADER + "/" + USER_EMAIL_HEADER
                             + " header; this endpoint must be called through the API gateway");
         }
         try {
-            return new AuthenticatedUser(Long.parseLong(userIdHeader), Role.valueOf(roleHeader));
+            return new AuthenticatedUser(Long.parseLong(userIdHeader), Role.valueOf(roleHeader), emailHeader);
         } catch (IllegalArgumentException e) {
             throw new BadCredentialsException(
                     "Malformed " + USER_ID_HEADER + "/" + USER_ROLE_HEADER + " header");

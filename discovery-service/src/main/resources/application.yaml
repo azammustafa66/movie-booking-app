@@ -1,6 +1,9 @@
 spring:
   application:
     name: discovery-service
+  threads:
+    virtual:
+      enabled: true
   web:
     error:
       # Never leak internals to a caller; stack traces belong in the log, not the response.

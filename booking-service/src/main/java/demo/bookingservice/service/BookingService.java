@@ -17,9 +17,13 @@ import demo.bookingservice.enums.ShowSeatStatus;
 import demo.bookingservice.exceptions.BookingNotFoundException;
 import demo.bookingservice.exceptions.InvalidBookingStateException;
 import demo.bookingservice.exceptions.SeatUnavailableException;
+import demo.bookingservice.messaging.BookingEventProducer;
+import demo.bookingservice.messaging.dto.BookingNotificationEvent;
+import demo.bookingservice.messaging.event.NotificationEventType;
 import demo.bookingservice.repos.BookingRepository;
 import demo.bookingservice.repos.ShowSeatRepository;
 import demo.bookingservice.security.AuthContextHolder;
+import demo.bookingservice.security.AuthenticatedUser;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +49,11 @@ import java.util.stream.Collectors;
  * expired one happens two ways — lazily, the next time someone tries to
  * lock that same seat, or proactively, via
  * {@link demo.bookingservice.service.BookingExpiryService}'s background sweep.
+ * Confirmation and cancellation each publish a
+ * {@link demo.bookingservice.messaging.dto.BookingNotificationEvent} via
+ * {@link demo.bookingservice.messaging.BookingEventProducer} for
+ * notification-service to act on — checkout and expiry don't, since
+ * neither is a customer-driven action worth notifying about the same way.
  */
 @Service
 @RequiredArgsConstructor
@@ -54,6 +63,7 @@ public class BookingService {
     private final ShowSeatRepository showSeatRepository;
     private final CatalogClient catalogClient;
     private final BookingRepository bookingRepository;
+    private final BookingEventProducer bookingEventProducer;
 
     /**
      * Validates the requested seats against catalog-service, locks each one
@@ -167,15 +177,18 @@ public class BookingService {
      * {@link BookingRepository#findByIdAndUserId} — a booking id that
      * exists but belongs to someone else looks identical to one that
      * doesn't exist at all, both surface as {@link BookingNotFoundException}.
+     * Publishes a {@link NotificationEventType#BOOKING_CANCELLED} event once
+     * the cancellation is applied, so notification-service can tell the
+     * customer.
      *
      * @throws BookingNotFoundException     if no such booking exists for the caller
      * @throws InvalidBookingStateException if the booking is already {@code CANCELLED} or {@code EXPIRED}
      */
     @Transactional
     public void cancelBooking(Long bookingId) {
-        Long userId = AuthContextHolder.getCurrentUser().userId();
+        AuthenticatedUser currentUser = AuthContextHolder.getCurrentUser();
         Booking booking = bookingRepository
-                .findByIdAndUserId(bookingId, userId)
+                .findByIdAndUserId(bookingId, currentUser.userId())
                 .orElseThrow(() -> new BookingNotFoundException("Booking not found with Id: " + bookingId));
 
         if (booking.getStatus() != BookingStatus.PENDING &&  booking.getStatus() != BookingStatus.CONFIRMED) {
@@ -187,6 +200,14 @@ public class BookingService {
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
+
+        bookingEventProducer.publish(new BookingNotificationEvent(
+                NotificationEventType.BOOKING_CANCELLED,
+                booking.getId(),
+                currentUser.userId(),
+                booking.getShowId(),
+                currentUser.email()
+        ));
     }
 
     /**
@@ -197,6 +218,8 @@ public class BookingService {
      * out from under this booking (e.g. by {@link #expireBooking} racing a
      * late confirmation), so a mismatch fails loudly instead of silently
      * confirming a booking that no longer actually holds its seats.
+     * Publishes a {@link NotificationEventType#BOOKING_CONFIRMED} event once
+     * confirmed, so notification-service can tell the customer.
      *
      * @throws BookingNotFoundException      if no such booking exists for the caller
      * @throws InvalidBookingStateException  if the booking isn't {@code PENDING} (already confirmed/cancelled/expired),
@@ -205,9 +228,9 @@ public class BookingService {
      */
     @Transactional
     public BookingResponseDto confirmBooking(Long bookingId) {
-        Long userId = AuthContextHolder.getCurrentUser().userId();
+        AuthenticatedUser currentUser = AuthContextHolder.getCurrentUser();
 
-        Booking booking = bookingRepository.findByIdAndUserId(bookingId, userId).orElseThrow(() -> new BookingNotFoundException("Booking not found with Id: " + bookingId));
+        Booking booking = bookingRepository.findByIdAndUserId(bookingId, currentUser.userId()).orElseThrow(() -> new BookingNotFoundException("Booking not found with Id: " + bookingId));
 
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new InvalidBookingStateException("Booking cannot be confirmed");
@@ -249,6 +272,14 @@ public class BookingService {
         }
 
         booking.setStatus(BookingStatus.CONFIRMED);
+
+        bookingEventProducer.publish(new BookingNotificationEvent(
+                NotificationEventType.BOOKING_CONFIRMED,
+                booking.getId(),
+                currentUser.userId(),
+                booking.getShowId(),
+                currentUser.email()
+        ));
 
         return new BookingResponseDto(
                 booking.getId(),
