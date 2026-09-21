@@ -1,0 +1,23 @@
+services:
+  catalog-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    env_file:
+      - ../.env
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-events_booking_app}?currentSchema=catalog
+      DB_USERNAME: ${DB_USERNAME:-admin}
+      DB_PASSWORD: ${DB_PASSWORD:-admin}
+      EUREKA_URL: http://discovery-service:8084/eureka/
+    expose:
+      - "8082"
+    networks:
+      - movie-booking
+
+networks:
+  movie-booking:
+    external: true
+    name: movie-booking

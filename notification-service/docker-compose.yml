@@ -1,0 +1,28 @@
+services:
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    env_file:
+      - ../.env
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-movieapp}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-movieapp-secret}
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+      MAIL_SMTP_AUTH: "false"
+      MAIL_SMTP_STARTTLS: "false"
+      MAIL_FROM: ${MAIL_FROM:-no-reply@moviebooking.local}
+    expose:
+      - "8085"
+    networks:
+      - movie-booking
+
+networks:
+  movie-booking:
+    external: true
+    name: movie-booking

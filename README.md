@@ -19,29 +19,24 @@ A highly concurrent, microservices-based backend system for managing events, use
 
 ## 🚀 Getting Started
 
-### 1. Start Infrastructure (Database, Broker, Email)
-We use Docker to run the backing services: PostgreSQL, RabbitMQ, and MailHog.
+### 1. Start the Full Stack
+Each service has its own `Dockerfile` and Compose file. Java 21 is supplied by each service image, so Java and Maven do not need to be installed on the host. Copy `.env.example` to `.env` and replace the placeholder secrets before deploying.
 ```bash
-docker-compose up -d
+cp -n .env.example .env
+docker compose -f infrastructure/docker-compose.yml up -d
+docker compose -f discovery-service/docker-compose.yml up -d --build
+docker compose -f user-service/docker-compose.yml up -d --build
+docker compose -f catalog-service/docker-compose.yml up -d --build
+docker compose -f booking-service/docker-compose.yml up -d --build
+docker compose -f notification-service/docker-compose.yml up -d --build
+docker compose -f api-gateway/docker-compose.yml up -d --build
 ```
-- **RabbitMQ Dashboard**: `http://localhost:15672` (guest/guest)
+- **API Gateway**: `http://localhost:8080`
+- **Eureka Dashboard**: `http://localhost:8084`
+- **RabbitMQ Dashboard**: `http://localhost:15672` (use `RABBITMQ_USERNAME`/`RABBITMQ_PASSWORD` from `.env`)
 - **MailHog Inbox**: `http://localhost:8025` (Check this to see live emails!)
 
-### 2. Run the Microservices
-Ensure Java 21+ and Maven are installed. Start them in the following order:
-```bash
-# 1. Start Discovery Service
-./mvnw spring-boot:run -pl discovery-service
-
-# 2. Start User, Catalog, Booking, and Notification Services
-./mvnw spring-boot:run -pl user-service
-./mvnw spring-boot:run -pl catalog-service
-./mvnw spring-boot:run -pl booking-service
-./mvnw spring-boot:run -pl notification-service
-
-# 3. Start API Gateway (Must run last so it registers with Eureka)
-./mvnw spring-boot:run -pl api-gateway
-```
+The same deployment can be run with `./start_services.sh`. The Compose files share the Docker network named `movie-booking`, so the services resolve each other by name (`postgres`, `rabbitmq`, `discovery-service`, and `mailhog`).
 
 ## 🧪 Testing & Stress Scenarios
 

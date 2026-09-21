@@ -1,0 +1,27 @@
+services:
+  booking-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    env_file:
+      - ../.env
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-events_booking_app}?currentSchema=booking
+      DB_USERNAME: ${DB_USERNAME:-admin}
+      DB_PASSWORD: ${DB_PASSWORD:-admin}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-movieapp}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-movieapp-secret}
+      EUREKA_URL: http://discovery-service:8084/eureka/
+    expose:
+      - "8083"
+    networks:
+      - movie-booking
+
+networks:
+  movie-booking:
+    external: true
+    name: movie-booking
