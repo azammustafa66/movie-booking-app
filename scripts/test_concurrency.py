@@ -5,8 +5,8 @@ import time
 import sys
 
 BASE_URL = "http://localhost:8080/api/v1"
-SHOW_ID = 7
-SEAT_ID = 481
+SHOW_ID = 1
+SEAT_ID = 181
 
 def create_user_and_login():
     session = requests.Session()
@@ -76,7 +76,7 @@ def main():
     start_test = time.time()
     with concurrent.futures.ThreadPoolExecutor(max_workers=NUM_USERS) as executor:
         # Submit all tasks
-        futures = [executor.submit(attempt_booking, s, i) for i, s in enumerate(sessions)]
+        futures = [executor.submit(attempt_booking, s, i) for i, s in enumerate(sessions, 1)]
         
         for future in concurrent.futures.as_completed(futures):
             user_idx, status, text, duration = future.result()

@@ -4,7 +4,7 @@ import uuid
 import sys
 
 BASE_URL = "http://localhost:8080/api/v1"
-DB_URL = "postgresql://admin:admin@localhost:5432/events_booking_app"
+DB_URL = "postgresql://user_service:change-user-db-password@localhost:5533/user_db"
 
 def register_user(role):
     unique_id = uuid.uuid4().hex[:8]
@@ -77,7 +77,7 @@ def test_rbac_flow():
     # 1. Customer Endpoints
     print("\n[Testing Customer Access]")
     # Customer can get seats (public/customer)
-    check_endpoint("Customer -> Get Seats", "GET", f"{BASE_URL}/bookings/shows/7/seats", customer_token, 200)
+    check_endpoint("Customer -> Get Seats", "GET", f"{BASE_URL}/bookings/shows/1/seats", customer_token, 200)
     # Customer CANNOT access Vendor theatres
     check_endpoint("Customer -> Vendor Endpoints", "GET", f"{BASE_URL}/vendor/theatres", customer_token, 403)
     

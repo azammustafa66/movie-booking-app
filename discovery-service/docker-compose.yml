@@ -8,7 +8,7 @@ services:
     env_file:
       - ../.env
     environment:
-      EUREKA_URL: http://discovery-service:8084/eureka/
+      EUREKA_URL: ${EUREKA_URL:-http://discovery-service:8084/eureka/}
     ports:
       - "${DISCOVERY_PORT:-8084}:8084"
     networks:

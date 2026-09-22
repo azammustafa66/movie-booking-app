@@ -67,11 +67,10 @@ def test_login(session, user_data, capsys):
 def test_booking(session, capsys):
     url = f"{BASE_URL}/bookings"
     # Note: For a real test, we need a valid showId and seatIds from the catalog service.
-    # Here we send a real payload (showId 7, screen 9). 
-    # Available seatIds for this screen include: [481, 482], [487, 488], [493], etc.
+    # These match catalog-service's V2 seed migration (shows 1-6, screen 4's seats).
     booking_payload = {
-        "showId": 7,
-        "seatIds": [487, 488]
+        "showId": 1,
+        "seatIds": [181, 182]
     }
     print(f"\n[POST] {url}")
     print(f"Payload: {booking_payload}")

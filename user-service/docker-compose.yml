@@ -1,21 +1,48 @@
 services:
+  user-db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      POSTGRES_USER: ${USER_DB_USERNAME:-user_service}
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD:-change-user-db-password}
+      POSTGRES_DB: ${USER_DB_NAME:-user_db}
+    ports:
+      - "${USER_DB_PORT:-5433}:5432"
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+    networks:
+      - movie-booking
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${USER_DB_USERNAME:-user_service} -d ${USER_DB_NAME:-user_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
   user-service:
     build:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
     init: true
+    depends_on:
+      user-db:
+        condition: service_healthy
     env_file:
       - ../.env
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-events_booking_app}
-      DB_USERNAME: ${DB_USERNAME:-admin}
-      DB_PASSWORD: ${DB_PASSWORD:-admin}
-      EUREKA_URL: http://discovery-service:8084/eureka/
+      DB_URL: jdbc:postgresql://user-db:5432/${USER_DB_NAME:-user_db}
+      DB_USERNAME: ${USER_DB_USERNAME:-user_service}
+      DB_PASSWORD: ${USER_DB_PASSWORD:-change-user-db-password}
+      EUREKA_URL: ${EUREKA_URL:-http://discovery-service:8084/eureka/}
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:-true}
+      EUREKA_INSTANCE_HOSTNAME: ${USER_EUREKA_INSTANCE_HOSTNAME:-localhost}
+      EUREKA_INSTANCE_PORT: ${USER_SERVICE_PORT:-8081}
       ACCESS_TOKEN_EXPIRATION: ${ACCESS_TOKEN_EXPIRATION:-900}
       REFRESH_TOKEN_EXPIRATION: ${REFRESH_TOKEN_EXPIRATION:-604800}
-    expose:
-      - "8081"
+    ports:
+      - "${USER_SERVICE_PORT:-8081}:8081"
     networks:
       - movie-booking
 
@@ -23,3 +50,7 @@ networks:
   movie-booking:
     external: true
     name: movie-booking
+
+volumes:
+  user-db-data:
+    name: movie-booking-user-db-data

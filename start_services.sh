@@ -10,10 +10,8 @@ if [[ ! -f .env ]]; then
   exit 1
 fi
 
-docker compose -f infrastructure/docker-compose.yml up -d
-docker compose -f discovery-service/docker-compose.yml up -d --build
-docker compose -f user-service/docker-compose.yml up -d --build
-docker compose -f catalog-service/docker-compose.yml up -d --build
-docker compose -f booking-service/docker-compose.yml up -d --build
-docker compose -f notification-service/docker-compose.yml up -d --build
-docker compose -f api-gateway/docker-compose.yml up -d --build
+if ! docker network inspect movie-booking >/dev/null 2>&1; then
+  docker network create movie-booking >/dev/null
+fi
+
+docker compose up -d --build

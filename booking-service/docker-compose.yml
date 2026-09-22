@@ -1,23 +1,50 @@
 services:
+  booking-db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      POSTGRES_USER: ${BOOKING_DB_USERNAME:-booking_service}
+      POSTGRES_PASSWORD: ${BOOKING_DB_PASSWORD:-change-booking-db-password}
+      POSTGRES_DB: ${BOOKING_DB_NAME:-booking_db}
+    ports:
+      - "${BOOKING_DB_PORT:-5435}:5432"
+    volumes:
+      - booking-db-data:/var/lib/postgresql/data
+    networks:
+      - movie-booking
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${BOOKING_DB_USERNAME:-booking_service} -d ${BOOKING_DB_NAME:-booking_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
   booking-service:
     build:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
     init: true
+    depends_on:
+      booking-db:
+        condition: service_healthy
     env_file:
       - ../.env
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-events_booking_app}?currentSchema=booking
-      DB_USERNAME: ${DB_USERNAME:-admin}
-      DB_PASSWORD: ${DB_PASSWORD:-admin}
-      RABBITMQ_HOST: rabbitmq
-      RABBITMQ_PORT: 5672
+      DB_URL: jdbc:postgresql://booking-db:5432/${BOOKING_DB_NAME:-booking_db}?currentSchema=booking
+      DB_USERNAME: ${BOOKING_DB_USERNAME:-booking_service}
+      DB_PASSWORD: ${BOOKING_DB_PASSWORD:-change-booking-db-password}
+      RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
+      RABBITMQ_PORT: ${RABBITMQ_PORT:-5672}
       RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-movieapp}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-movieapp-secret}
-      EUREKA_URL: http://discovery-service:8084/eureka/
-    expose:
-      - "8083"
+      EUREKA_URL: ${EUREKA_URL:-http://discovery-service:8084/eureka/}
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:-true}
+      EUREKA_INSTANCE_HOSTNAME: ${BOOKING_EUREKA_INSTANCE_HOSTNAME:-localhost}
+      EUREKA_INSTANCE_PORT: ${BOOKING_SERVICE_PORT:-8083}
+    ports:
+      - "${BOOKING_SERVICE_PORT:-8083}:8083"
     networks:
       - movie-booking
 
@@ -25,3 +52,7 @@ networks:
   movie-booking:
     external: true
     name: movie-booking
+
+volumes:
+  booking-db-data:
+    name: movie-booking-booking-db-data

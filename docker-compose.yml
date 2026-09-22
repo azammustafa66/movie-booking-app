@@ -1,0 +1,51 @@
+# Single-command entrypoint for local, same-host development.
+#
+# Each service directory still keeps its own standalone docker-compose.yml —
+# those stay authoritative for deploying a service independently (e.g. onto
+# its own host in production; see README's multi-host notes). This file just
+# includes all of them into one project so the whole stack comes up with one
+# `docker compose up -d --build`, in dependency order, instead of 8 separate
+# `docker compose -f ... up` invocations.
+include:
+  - rabbitmq/docker-compose.yml
+  - mailhog/docker-compose.yml
+  - discovery-service/docker-compose.yml
+  - user-service/docker-compose.yml
+  - catalog-service/docker-compose.yml
+  - booking-service/docker-compose.yml
+  - notification-service/docker-compose.yml
+  - api-gateway/docker-compose.yml
+
+services:
+  user-service:
+    depends_on:
+      discovery-service:
+        condition: service_started
+
+  catalog-service:
+    depends_on:
+      discovery-service:
+        condition: service_started
+
+  booking-service:
+    depends_on:
+      discovery-service:
+        condition: service_started
+
+  notification-service:
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+
+  api-gateway:
+    depends_on:
+      discovery-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      catalog-service:
+        condition: service_started
+      booking-service:
+        condition: service_started

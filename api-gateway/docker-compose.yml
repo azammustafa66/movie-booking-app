@@ -8,7 +8,10 @@ services:
     env_file:
       - ../.env
     environment:
-      EUREKA_URL: http://discovery-service:8084/eureka/
+      EUREKA_URL: ${EUREKA_URL:-http://discovery-service:8084/eureka/}
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:-true}
+      EUREKA_INSTANCE_HOSTNAME: ${GATEWAY_EUREKA_INSTANCE_HOSTNAME:-localhost}
+      EUREKA_INSTANCE_PORT: ${GATEWAY_PORT:-8080}
     ports:
       - "${GATEWAY_PORT:-8080}:8080"
     networks:
