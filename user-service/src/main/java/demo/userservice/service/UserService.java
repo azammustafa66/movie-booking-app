@@ -139,14 +139,14 @@ public class UserService {
                 .findByRefreshTokenHash(tokenHash)
                 .orElseThrow(() -> {
                     log.warn("Refresh failed, unknown refresh token");
-                    return new BadCredentialsException("Invalid refresh token");
+                    return new BadCredentialsException("Invalid refresh token or session expired");
                 });
 
         LocalDateTime now = LocalDateTime.now();
 
         if (oldSession.isRevoked() || oldSession.getExpiresAt().isBefore(now)) {
             log.warn("Refresh failed, revoked or expired session for {}", oldSession.getUser().getEmail());
-            throw new BadCredentialsException("Invalid refresh token");
+            throw new BadCredentialsException("Invalid refresh token or session expired");
         }
 
         AppUser user = oldSession.getUser();
@@ -194,8 +194,13 @@ public class UserService {
                 .findByRefreshTokenHash(tokenHash)
                 .orElseThrow(() -> {
                     log.warn("Logout failed, unknown refresh token");
-                    return new BadCredentialsException("Invalid refresh token");
+                    return new BadCredentialsException("Invalid refresh token or session expired");
                 });
+
+        if (session.isRevoked()) {
+            log.warn("Logout failed, revoked session for {}", session.getUser().getEmail());
+            throw new BadCredentialsException("Invalid refresh token or session expired");
+        }
 
         session.setRevoked(true);
         userSessionRepository.save(session);
@@ -216,8 +221,14 @@ public class UserService {
                 .findByRefreshTokenHash(tokenHash)
                 .orElseThrow(() -> {
                     log.warn("Logout-all failed, unknown refresh token");
-                    return new BadCredentialsException("Invalid refresh token");
+                    return new BadCredentialsException("Invalid refresh token or session expired");
                 });
+
+        if (currentSession.isRevoked()) {
+            log.warn("Logout-all failed, revoked session for {}", currentSession.getUser().getEmail());
+            throw new BadCredentialsException("Invalid refresh token or session expired");
+        }
+
         AppUser user = currentSession.getUser();
 
         userSessionRepository.revokeAllByUser(user);
