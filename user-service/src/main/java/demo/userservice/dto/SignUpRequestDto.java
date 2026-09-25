@@ -3,8 +3,10 @@ package demo.userservice.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 
 /** Registration payload submitted to {@code POST /api/v1/user/signup}. */
+@Builder(toBuilder = true)
 public record SignUpRequestDto(
         @NotBlank(message = "First name cannot be empty")
         String firstName,

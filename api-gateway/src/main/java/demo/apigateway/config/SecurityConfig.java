@@ -29,7 +29,10 @@ import org.springframework.security.web.SecurityFilterChain;
  * {@code AuthInterceptor} already narrows that further to
  * {@code CUSTOMER}/{@code ADMIN}; {@code /internal/**} is denied outright
  * even though no route to it exists either (belt and suspenders — see
- * {@code demo.catalogservice.controller.internal.InternalCatalogController}).
+ * {@code demo.catalogservice.controller.internal.InternalCatalogController});
+ * {@code /fallback/**} ({@code FallbackController}) is left public explicitly,
+ * since a circuit breaker's fallback forward shouldn't depend on whether the
+ * original route it's landing from required auth.
  */
 @Configuration
 @EnableWebSecurity
@@ -45,6 +48,7 @@ public class SecurityConfig {
                         // require a prior token, there's no authenticated-only action there.
                         .requestMatchers("/api/v1/user/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/fallback/**").permitAll()
                         .requestMatchers("/internal/**").denyAll()
                         .requestMatchers(
                                 "/api/v1/movies/**", "/api/v1/shows/**", "/api/v1/theatres/**",
